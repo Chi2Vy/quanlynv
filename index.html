@@ -1,1 +1,1456 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ Thống Quản Lý Nhân Viên</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+/* Core Styles */
+      .hover-scale:hover {
+        transform: scale(1.05);
+        transition: transform 0.2s;
+      }
+      .table-scroll {
+        max-height: 70vh;
+        overflow: auto;
+      }
+      .hidden {
+        display: none;
+      }
+
+      /* Enhanced Gradient Background */
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      /* Button Styles with Enhanced Colors */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+      }
+      .btn-success:hover {
+        background: linear-gradient(135deg, #0f8778 0%, #32d96a 100%);
+      }
+
+      .btn-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+      .btn-warning:hover {
+        background: linear-gradient(135deg, #ee82e9 0%, #f34559 100%);
+      }
+
+      .btn-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+      }
+      .btn-info:hover {
+        background: linear-gradient(135deg, #3d8bfe 0%, #00d9fe 100%);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #374151;
+      }
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #96e6e1 0%, #fcc9da 100%);
+      }
+
+      .btn-small {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      /* Enhanced Status Badges */
+      .status-badge {
+        display: inline-flex;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        border-radius: 20px;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .status-working {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+      }
+      .status-probation {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+      .status-resigned {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        color: #721c24;
+      }
+      .status-default {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        color: #8b4513;
+      }
+
+      /* Work Duration Badges */
+      .duration-badge {
+        display: inline-flex;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 15px;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      }
+      .duration-new {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #374151;
+      }
+      .duration-experienced {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+      }
+      .duration-senior {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .duration-veteran {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+
+      /* Form Inputs with Enhanced Styling */
+      .form-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 12px;
+        background-color: white;
+        transition: all 0.3s ease;
+      }
+      .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+      }
+
+      /* Enhanced Table Styles */
+      .table-cell {
+        padding: 14px 10px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f4f8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Sticky Columns with Updated Widths */
+      .sticky-col {
+        position: sticky;
+        background-color: white;
+        z-index: 10;
+        border-right: 2px solid #e1e8ed;
+      }
+      .sticky-col-1 {
+        left: 0;
+        width: 50px;
+        min-width: 50px;
+      }
+      .sticky-col-2 {
+        left: 50px;
+        width: 80px;
+        min-width: 80px;
+      }
+      .sticky-col-3 {
+        left: 130px;
+        width: 100px;
+        min-width: 100px;
+      }
+      .sticky-col-4 {
+        left: 230px;
+        width: 200px;
+        min-width: 200px;
+      }
+
+      /* Enhanced Header Styles */
+      .sticky-header {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        z-index: 20;
+        border-bottom: 3px solid #cbd5e0;
+      }
+      .sticky-header-col {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        z-index: 30;
+        border-right: 2px solid #e1e8ed;
+        border-bottom: 3px solid #cbd5e0;
+      }
+
+      /* Avatar Styles */
+      .avatar-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 70px;
+      }
+      .avatar-image {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #e1e8ed;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .avatar-upload {
+        position: relative;
+        cursor: pointer;
+      }
+      .avatar-upload input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+      .avatar-upload:hover .avatar-image {
+        opacity: 0.8;
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Enhanced Column Widths */
+      .col-position {
+        width: 120px;
+        min-width: 120px;
+      }
+      .col-department {
+        width: 150px;
+        min-width: 150px;
+      }
+      .col-level {
+        width: 100px;
+        min-width: 100px;
+      }
+      .col-date {
+        width: 120px;
+        min-width: 120px;
+      }
+      .col-contract-date {
+        width: 130px;
+        min-width: 130px;
+      }
+      .col-duration {
+        width: 140px;
+        min-width: 140px;
+      }
+      .col-status {
+        width: 130px;
+        min-width: 130px;
+      }
+      .col-gender {
+        width: 80px;
+        min-width: 80px;
+      }
+      .col-phone {
+        width: 120px;
+        min-width: 120px;
+      }
+      .col-email {
+        width: 200px;
+        min-width: 200px;
+      }
+      .col-address {
+        width: 250px;
+        min-width: 250px;
+      }
+      .col-actions {
+        width: 120px;
+        min-width: 120px;
+      }
+
+      /* Enhanced Quick Add Row */
+      .quick-add-row {
+        background: linear-gradient(135deg, #e0f2fe 0%, #f3e5f5 100%);
+        border: 3px dashed #667eea;
+      }
+      .quick-add-sticky {
+        background: linear-gradient(
+          135deg,
+          #e0f2fe 0%,
+          #f3e5f5 100%
+        ) !important;
+      }
+
+      /* Enhanced Cards */
+      .stat-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+      }
+
+      /* Enhanced Main Container */
+      .main-container {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Row Hover Effects */
+      .employee-row:hover {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      /* Unsaved Changes Indicator */
+      .unsaved-changes {
+        background: linear-gradient(
+          135deg,
+          #fef3c7 0%,
+          #fde68a 100%
+        ) !important;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen py-8">
+
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Enhanced Header -->
+      <div
+        class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-10 text-white mb-10 shadow-2xl"
+      >
+        <div class="text-center">
+          <h1
+            class="text-5xl font-bold mb-4 flex items-center justify-center gap-4"
+          >
+            <svg
+              class="w-12 h-12"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+              ></path>
+            </svg>
+            HỆ THỐNG QUẢN LÝ NHÂN VIÊN
+          </h1>
+          <p class="text-2xl opacity-95 font-medium">
+            Phòng Kinh Doanh HUỲNH NO - Quản lý chuyên nghiệp, hiệu quả cao
+          </p>
+        </div>
+      </div>
+
+      <!-- Enhanced Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+        <div class="stat-card hover-scale">
+          <div class="flex items-center">
+            <div
+              class="p-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+            >
+              <svg
+                class="w-10 h-10"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+                ></path>
+              </svg>
+            </div>
+            <div class="ml-5">
+              <p class="text-4xl font-bold text-gray-800" id="total-count">0</p>
+              <p class="text-gray-600 font-medium">Tổng Nhân Viên</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card hover-scale">
+          <div class="flex items-center">
+            <div
+              class="p-4 rounded-full bg-gradient-to-r from-green-500 to-teal-500 text-white"
+            >
+              <svg
+                class="w-10 h-10"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                ></path>
+              </svg>
+            </div>
+            <div class="ml-5">
+              <p class="text-4xl font-bold text-gray-800" id="working-count">
+                0
+              </p>
+              <p class="text-gray-600 font-medium">Đang Làm Việc</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card hover-scale">
+          <div class="flex items-center">
+            <div
+              class="p-4 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
+            >
+              <svg
+                class="w-10 h-10"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+            <div class="ml-5">
+              <p class="text-4xl font-bold text-gray-800" id="probation-count">
+                0
+              </p>
+              <p class="text-gray-600 font-medium">Thử Việc</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card hover-scale">
+          <div class="flex items-center">
+            <div
+              class="p-4 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white"
+            >
+              <svg
+                class="w-10 h-10"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                ></path>
+              </svg>
+            </div>
+            <div class="ml-5">
+              <p class="text-4xl font-bold text-gray-800" id="resigned-count">
+                0
+              </p>
+              <p class="text-gray-600 font-medium">Đã Nghỉ</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Control Panel -->
+      <div class="main-container p-8 mb-10">
+        <div class="flex flex-wrap gap-6 items-center">
+          <button onclick="toggleQuickAdd()" class="btn btn-success">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              ></path>
+            </svg>
+            Thêm Nhanh
+          </button>
+
+          <button
+            onclick="toggleEditMode()"
+            class="btn btn-primary"
+            id="edit-btn"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              ></path>
+            </svg>
+            Chế Độ Sửa
+          </button>
+
+          <button onclick="exportExcel()" class="btn btn-info">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              ></path>
+            </svg>
+            Xuất Excel
+          </button>
+
+          <button
+            onclick="saveAllChanges()"
+            class="btn btn-secondary"
+            id="save-btn"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+              ></path>
+            </svg>
+            Lưu Thay Đổi
+          </button>
+
+          <div class="flex items-center gap-3">
+            <span class="font-semibold text-gray-700">Lọc:</span>
+            <select
+              id="status-filter"
+              onchange="filterEmployees()"
+              class="border-2 border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="Đang làm việc">Đang làm việc</option>
+              <option value="Thử việc">Thử việc</option>
+              <option value="Đã nghỉ việc">Đã nghỉ việc</option>
+            </select>
+          </div>
+
+          <div class="relative flex-1 max-w-md">
+            <svg
+              class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              ></path>
+            </svg>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Tìm kiếm nhân viên..."
+              oninput="filterEmployees()"
+              class="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Table Container -->
+      <div class="main-container overflow-hidden">
+        <div
+          class="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100"
+        >
+          <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+              ></path>
+            </svg>
+            Danh Sách Nhân Viên
+          </h2>
+        </div>
+
+        <div class="table-scroll">
+          <table
+            class="w-full border-collapse"
+            id="employee-table"
+            style="min-width: 2600px"
+          >
+            <thead>
+              <tr>
+                <th
+                  class="sticky-header-col sticky-col-1 table-cell text-center text-xs font-bold text-gray-700 uppercase tracking-wider"
+                >
+                  STT
+                </th>
+                <th
+                  class="sticky-header-col sticky-col-2 table-cell text-center text-xs font-bold text-gray-700 uppercase tracking-wider"
+                >
+                  Avatar
+                </th>
+                <th
+                  class="sticky-header-col sticky-col-3 table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider"
+                >
+                  Mã NV
+                </th>
+                <th
+                  class="sticky-header-col sticky-col-4 table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider"
+                >
+                  Tên Nhân Viên
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-position"
+                >
+                  Vị Trí
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-department"
+                >
+                  Bộ Phận
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-level"
+                >
+                  Cấp Bậc
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-date"
+                >
+                  Ngày Bắt Đầu
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-contract-date"
+                >
+                  Ngày Ký HĐ
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-duration"
+                >
+                  Thời Gian LV
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-status"
+                >
+                  Trạng Thái CV
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-gender"
+                >
+                  Giới Tính
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-date"
+                >
+                  Ngày Sinh
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-phone"
+                >
+                  SĐT
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-email"
+                >
+                  Email
+                </th>
+                <th
+                  class="sticky-header table-cell text-left text-xs font-bold text-gray-700 uppercase tracking-wider col-address"
+                >
+                  Địa Chỉ
+                </th>
+                <th
+                  class="sticky-header table-cell text-center text-xs font-bold text-gray-700 uppercase tracking-wider col-actions"
+                >
+                  Thao Tác
+                </th>
+              </tr>
+            </thead>
+            <tbody id="employee-tbody" class="bg-white">
+              <tr id="quick-add-row" class="quick-add-row hidden"></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
+  
+    <script>
+// Global Variables
+      let employees = [
+        {
+          stt: 1,
+          id: "NV001",
+          name: "Nguyễn Văn An",
+          avatar: "/api/placeholder/50/50",
+          position: "Sale",
+          department: "PKD HUỲNH NO",
+          level: "Nhân viên",
+          startDate: "2023-01-15",
+          contractDate: "2023-01-10",
+          workStatus: "Đang làm việc",
+          gender: "Nam",
+          dob: "1990-05-15",
+          phone: "0901234567",
+          email: "nguyenvanan@email.com",
+          address: "123 Đường ABC, Quận 1, TP.HCM",
+        },
+        {
+          stt: 2,
+          id: "NV002",
+          name: "Trần Thị Bình",
+          avatar: "/api/placeholder/50/50",
+          position: "Thư ký",
+          department: "PKD HUỲNH NO",
+          level: "Nhân viên",
+          startDate: "2023-02-01",
+          contractDate: "2023-01-25",
+          workStatus: "Đang làm việc",
+          gender: "Nữ",
+          dob: "1992-08-20",
+          phone: "0901234568",
+          email: "tranthibinh@email.com",
+          address: "456 Đường DEF, Quận 2, TP.HCM",
+        },
+        {
+          stt: 3,
+          id: "NV003",
+          name: "Lê Văn Cường",
+          avatar: "/api/placeholder/50/50",
+          position: "Trưởng phòng",
+          department: "PKD HUỲNH NO",
+          level: "Quản lý",
+          startDate: "2022-01-10",
+          contractDate: "2022-01-05",
+          workStatus: "Đang làm việc",
+          gender: "Nam",
+          dob: "1985-12-10",
+          phone: "0901234569",
+          email: "levancuong@email.com",
+          address: "789 Đường GHI, Quận 3, TP.HCM",
+        },
+        {
+          stt: 4,
+          id: "NV004",
+          name: "Phạm Thị Dung",
+          avatar: "/api/placeholder/50/50",
+          position: "Sale",
+          department: "PKD HUỲNH NO",
+          level: "Nhân viên",
+          startDate: "2023-03-15",
+          contractDate: "2023-03-10",
+          workStatus: "Thử việc",
+          gender: "Nữ",
+          dob: "1995-07-22",
+          phone: "0901234570",
+          email: "phamthidung@email.com",
+          address: "321 Đường XYZ, Quận 5, TP.HCM",
+        },
+        {
+          stt: 5,
+          id: "NV005",
+          name: "Hoàng Văn Định",
+          avatar: "/api/placeholder/50/50",
+          position: "Marketing",
+          department: "PKD HUỲNH NO",
+          level: "Nhân viên",
+          startDate: "2022-06-01",
+          contractDate: "2022-05-25",
+          workStatus: "Đã nghỉ việc",
+          gender: "Nam",
+          dob: "1988-11-03",
+          phone: "0901234571",
+          email: "hoangvandinh@email.com",
+          address: "654 Đường PQR, Quận 7, TP.HCM",
+        },
+      ];
+
+      let filteredEmployees = [];
+      let showQuickAdd = false;
+      let editMode = false;
+      let hasUnsavedChanges = false;
+
+      // Utility Functions
+      function formatDate(dateString) {
+        if (!dateString) return "";
+        return new Date(dateString).toLocaleDateString("vi-VN");
+      }
+
+      function calculateWorkDuration(contractDate) {
+        if (!contractDate) return "Chưa xác định";
+
+        const start = new Date(contractDate);
+        const now = new Date();
+        const diffTime = Math.abs(now - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        const years = Math.floor(diffDays / 365);
+        const months = Math.floor((diffDays % 365) / 30);
+
+        if (years > 0) {
+          if (months > 0) {
+            return `${years} năm ${months} tháng`;
+          } else {
+            return `${years} năm`;
+          }
+        } else if (months > 0) {
+          return `${months} tháng`;
+        } else {
+          return `${diffDays} ngày`;
+        }
+      }
+
+      function getDurationBadgeClass(contractDate) {
+        if (!contractDate) return "duration-new";
+
+        const start = new Date(contractDate);
+        const now = new Date();
+        const diffTime = Math.abs(now - start);
+        const diffMonths = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30));
+
+        if (diffMonths >= 36) return "duration-veteran"; // 3+ years
+        if (diffMonths >= 12) return "duration-senior"; // 1+ years
+        if (diffMonths >= 6) return "duration-experienced"; // 6+ months
+        return "duration-new"; // < 6 months
+      }
+
+      function getStatusBadgeClass(status) {
+        const statusClasses = {
+          "Đang làm việc": "status-working",
+          "Thử việc": "status-probation",
+          "Đã nghỉ việc": "status-resigned",
+        };
+        return statusClasses[status] || "status-default";
+      }
+
+      // State Management
+      function markUnsavedChanges() {
+        hasUnsavedChanges = true;
+        const saveBtn = document.getElementById("save-btn");
+        saveBtn.classList.add("btn-warning");
+        saveBtn.classList.remove("btn-secondary");
+      }
+
+      function clearUnsavedChanges() {
+        hasUnsavedChanges = false;
+        const saveBtn = document.getElementById("save-btn");
+        saveBtn.classList.add("btn-secondary");
+        saveBtn.classList.remove("btn-warning");
+      }
+
+      // Stats Management
+      function updateStats() {
+        const stats = {
+          total: employees.length,
+          working: employees.filter((emp) => emp.workStatus === "Đang làm việc")
+            .length,
+          probation: employees.filter((emp) => emp.workStatus === "Thử việc")
+            .length,
+          resigned: employees.filter((emp) => emp.workStatus === "Đã nghỉ việc")
+            .length,
+        };
+
+        document.getElementById("total-count").textContent = stats.total;
+        document.getElementById("working-count").textContent = stats.working;
+        document.getElementById("probation-count").textContent =
+          stats.probation;
+        document.getElementById("resigned-count").textContent = stats.resigned;
+      }
+
+      // Employee Management
+      function updateEmployee(employeeId, field, value) {
+        const employee = employees.find((emp) => emp.id === employeeId);
+        if (employee) {
+          if (
+            field === "id" &&
+            employees.some((emp) => emp.id === value && emp.id !== employeeId)
+          ) {
+            alert("Mã nhân viên đã tồn tại!");
+            renderEmployees();
+            return;
+          }
+
+          employee[field] = value;
+          markUnsavedChanges();
+
+          const filteredEmployee = filteredEmployees.find(
+            (emp) => emp.id === employee.id
+          );
+          if (filteredEmployee) {
+            filteredEmployee[field] = value;
+          }
+
+          if (field === "workStatus") {
+            updateStats();
+          }
+
+          // Re-render to update duration if contract date changed
+          if (field === "contractDate") {
+            renderEmployees();
+          }
+        }
+      }
+
+      function deleteEmployee(id) {
+        if (confirm("Bạn có chắc chắn muốn xóa nhân viên này?")) {
+          employees = employees.filter((emp) => emp.id !== id);
+          employees.forEach((emp, index) => {
+            emp.stt = index + 1;
+          });
+          filterEmployees();
+          updateStats();
+          markUnsavedChanges();
+        }
+      }
+
+      // Avatar Management
+      function handleAvatarUpload(employeeId, event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const employee = employees.find((emp) => emp.id === employeeId);
+            if (employee) {
+              employee.avatar = e.target.result;
+              markUnsavedChanges();
+              renderEmployees();
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function triggerAvatarUpload(employeeId) {
+        const input = document.getElementById(`avatar-input-${employeeId}`);
+        if (input) input.click();
+      }
+
+      // Filtering and Search
+      function filterEmployees() {
+        const searchTerm = document
+          .getElementById("search-input")
+          .value.toLowerCase();
+        const statusFilter = document.getElementById("status-filter").value;
+
+        filteredEmployees = employees.filter((employee) => {
+          const matchesSearch =
+            !searchTerm ||
+            employee.id.toLowerCase().includes(searchTerm) ||
+            employee.name.toLowerCase().includes(searchTerm) ||
+            employee.position.toLowerCase().includes(searchTerm) ||
+            employee.department.toLowerCase().includes(searchTerm) ||
+            employee.phone.toLowerCase().includes(searchTerm) ||
+            employee.email.toLowerCase().includes(searchTerm);
+
+          const matchesStatus =
+            !statusFilter || employee.workStatus === statusFilter;
+
+          return matchesSearch && matchesStatus;
+        });
+
+        renderEmployees();
+      }
+
+      // Rendering Functions
+      function renderEmployees() {
+        const tbody = document.getElementById("employee-tbody");
+        const quickAddRow = document.getElementById("quick-add-row");
+
+        // Clear existing rows except quick add row
+        const existingRows = tbody.querySelectorAll("tr:not(#quick-add-row)");
+        existingRows.forEach((row) => row.remove());
+
+        if (filteredEmployees.length === 0) {
+          renderEmptyState(tbody);
+          return;
+        }
+
+        filteredEmployees.forEach((employee) => {
+          const row = createEmployeeRow(employee);
+          tbody.appendChild(row);
+        });
+      }
+
+      function renderEmptyState(tbody) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.innerHTML = `
+                <td colspan="17" class="table-cell text-center" style="padding: 80px;">
+                    <div class="flex flex-col items-center justify-center text-gray-500">
+                        <svg class="w-20 h-20 mb-6 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
+                        </svg>
+                        <h3 class="text-xl font-semibold mb-3">Không có nhân viên nào</h3>
+                        <p class="text-base mb-6">Hãy thêm nhân viên đầu tiên để bắt đầu quản lý</p>
+                        <button onclick="toggleQuickAdd()" class="btn btn-primary">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Thêm Nhân Viên Đầu Tiên
+                        </button>
+                    </div>
+                </td>
+            `;
+        tbody.appendChild(emptyRow);
+      }
+
+      function createEmployeeRow(employee) {
+        const row = document.createElement("tr");
+        row.className = "employee-row";
+        row.innerHTML = `
+                <td class="sticky-col sticky-col-1 table-cell text-center text-sm font-semibold text-gray-900">
+                    ${employee.stt}
+                </td>
+                <td class="sticky-col sticky-col-2 table-cell">
+                    ${renderAvatarCell(employee)}
+                </td>
+                <td class="sticky-col sticky-col-3 table-cell text-left text-sm font-semibold text-gray-900">
+                    ${renderEditableCell(employee, "id")}
+                </td>
+                <td class="sticky-col sticky-col-4 table-cell text-left text-sm font-semibold text-gray-900">
+                    ${renderEditableCell(employee, "name")}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-position">
+                    ${renderSelectCell(employee, "position", [
+                      "Sale",
+                      "Thư ký",
+                      "Trưởng phòng",
+                      "Phó phòng",
+                      "Marketing",
+                      "Nhân viên",
+                    ])}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-department">
+                    ${renderEditableCell(employee, "department")}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-level">
+                    ${renderEditableCell(employee, "level")}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-date">
+                    ${renderDateCell(employee, "startDate")}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-contract-date">
+                    ${renderDateCell(employee, "contractDate")}
+                </td>
+                <td class="table-cell text-left text-sm col-duration">
+                    ${renderDurationCell(employee)}
+                </td>
+                <td class="table-cell text-left text-sm col-status">
+                    ${renderStatusCell(employee)}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-gender">
+                    ${renderSelectCell(employee, "gender", ["Nam", "Nữ"])}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-date">
+                    ${renderDateCell(employee, "dob")}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-phone">
+                    ${renderEditableCell(employee, "phone", "tel")}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-email">
+                    ${renderEditableCell(employee, "email", "email")}
+                </td>
+                <td class="table-cell text-left text-sm text-gray-900 col-address">
+                    ${renderEditableCell(employee, "address")}
+                </td>
+                <td class="table-cell text-center text-sm col-actions">
+                    ${renderActionsCell(employee)}
+                </td>
+            `;
+        return row;
+      }
+
+      function renderAvatarCell(employee) {
+        if (editMode) {
+          return `
+                    <div class="avatar-container">
+                        <div class="flex flex-col items-center">
+                            <div class="avatar-upload" onclick="triggerAvatarUpload('${employee.id}')">
+                                <img src="${employee.avatar}" alt="${employee.name}" class="avatar-image" />
+                                <input type="file" id="avatar-input-${employee.id}" accept="image/*" onchange="handleAvatarUpload('${employee.id}', event)" style="display: none;" />
+                            </div>
+                            <button onclick="triggerAvatarUpload('${employee.id}')" class="mt-2 px-3 py-1 text-xs bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-300">
+                                Đổi ảnh
+                            </button>
+                        </div>
+                    </div>
+                `;
+        } else {
+          return `
+                    <div class="avatar-container">
+                        <img src="${employee.avatar}" alt="${employee.name}" class="avatar-image" />
+                    </div>
+                `;
+        }
+      }
+
+      function renderEditableCell(employee, field, inputType = "text") {
+        if (editMode) {
+          return `<input type="${inputType}" value="${employee[field]}" onchange="updateEmployee('${employee.id}', '${field}', this.value)" class="form-input" />`;
+        } else {
+          return employee[field];
+        }
+      }
+
+      function renderSelectCell(employee, field, options) {
+        if (editMode) {
+          const optionsHtml = options
+            .map(
+              (option) =>
+                `<option value="${option}" ${
+                  employee[field] === option ? "selected" : ""
+                }>${option}</option>`
+            )
+            .join("");
+          return `<select onchange="updateEmployee('${employee.id}', '${field}', this.value)" class="form-input">${optionsHtml}</select>`;
+        } else {
+          return employee[field];
+        }
+      }
+
+      function renderDateCell(employee, field) {
+        if (editMode) {
+          return `<input type="date" value="${employee[field]}" onchange="updateEmployee('${employee.id}', '${field}', this.value)" class="form-input" />`;
+        } else {
+          return formatDate(employee[field]);
+        }
+      }
+
+      function renderDurationCell(employee) {
+        const duration = calculateWorkDuration(employee.contractDate);
+        const badgeClass = getDurationBadgeClass(employee.contractDate);
+        return `<span class="duration-badge ${badgeClass}">${duration}</span>`;
+      }
+
+      function renderStatusCell(employee) {
+        if (editMode) {
+          const options = ["Thử việc", "Đang làm việc", "Đã nghỉ việc"];
+          const optionsHtml = options
+            .map(
+              (option) =>
+                `<option value="${option}" ${
+                  employee.workStatus === option ? "selected" : ""
+                }>${option}</option>`
+            )
+            .join("");
+          return `<select onchange="updateEmployee('${employee.id}', 'workStatus', this.value)" class="form-input">${optionsHtml}</select>`;
+        } else {
+          return `<span class="status-badge ${getStatusBadgeClass(
+            employee.workStatus
+          )}">${employee.workStatus}</span>`;
+        }
+      }
+
+      function renderActionsCell(employee) {
+        return `
+                <div class="flex gap-2 justify-center">
+                    <button onclick="deleteEmployee('${employee.id}')" class="text-red-600 hover:text-red-800 transition-colors duration-200 p-2 rounded-full hover:bg-red-50" title="Xóa nhân viên">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+      }
+
+      // Quick Add Functions
+      function toggleQuickAdd() {
+        showQuickAdd = !showQuickAdd;
+        renderQuickAddRow();
+      }
+
+      function renderQuickAddRow() {
+        const quickAddRow = document.getElementById("quick-add-row");
+        if (showQuickAdd) {
+          quickAddRow.classList.remove("hidden");
+          quickAddRow.innerHTML = createQuickAddRowContent();
+        } else {
+          quickAddRow.classList.add("hidden");
+        }
+      }
+
+      function createQuickAddRowContent() {
+        const today = new Date().toISOString().split("T")[0];
+        return `
+                <td class="sticky-col sticky-col-1 quick-add-sticky table-cell text-center text-sm font-semibold">
+                    ${employees.length + 1}
+                </td>
+                <td class="sticky-col sticky-col-2 quick-add-sticky table-cell">
+                    <div class="avatar-container">
+                        <div class="flex flex-col items-center">
+                            <div class="avatar-upload" onclick="triggerNewAvatarUpload()">
+                                <img src="/api/placeholder/50/50" alt="New Avatar" class="avatar-image" id="new-avatar-preview" />
+                                <input type="file" id="new-avatar-input" accept="image/*" onchange="handleNewAvatarUpload(event)" style="display: none;" />
+                            </div>
+                            <button onclick="triggerNewAvatarUpload()" class="mt-2 px-3 py-1 text-xs bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full hover:from-blue-600 hover:to-purple-700 transition-all duration-300">
+                                Chọn ảnh
+                            </button>
+                        </div>
+                    </div>
+                </td>
+                <td class="sticky-col sticky-col-3 quick-add-sticky table-cell">
+                    <input type="text" id="new-id" class="form-input" placeholder="Mã NV" />
+                </td>
+                <td class="sticky-col sticky-col-4 quick-add-sticky table-cell">
+                    <input type="text" id="new-name" class="form-input" placeholder="Họ tên" />
+                </td>
+                <td class="table-cell col-position">
+                    <select id="new-position" class="form-input">
+                        <option value="Sale">Sale</option>
+                        <option value="Thư ký">Thư ký</option>
+                        <option value="Trưởng phòng">Trưởng phòng</option>
+                        <option value="Phó phòng">Phó phòng</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Nhân viên">Nhân viên</option>
+                    </select>
+                </td>
+                <td class="table-cell col-department"><input type="text" id="new-department" class="form-input" value="PKD HUỲNH NO" /></td>
+                <td class="table-cell col-level"><input type="text" id="new-level" class="form-input" value="Nhân viên" /></td>
+                <td class="table-cell col-date"><input type="date" id="new-startDate" class="form-input" value="${today}" /></td>
+                <td class="table-cell col-contract-date"><input type="date" id="new-contractDate" class="form-input" value="${today}" /></td>
+                <td class="table-cell col-duration">
+                    <span class="duration-badge duration-new">Mới</span>
+                </td>
+                <td class="table-cell col-status">
+                    <select id="new-workStatus" class="form-input">
+                        <option value="Thử việc">Thử việc</option>
+                        <option value="Đang làm việc">Đang làm việc</option>
+                        <option value="Đã nghỉ việc">Đã nghỉ việc</option>
+                    </select>
+                </td>
+                <td class="table-cell col-gender">
+                    <select id="new-gender" class="form-input">
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                    </select>
+                </td>
+                <td class="table-cell col-date"><input type="date" id="new-dob" class="form-input" /></td>
+                <td class="table-cell col-phone"><input type="tel" id="new-phone" class="form-input" /></td>
+                <td class="table-cell col-email"><input type="email" id="new-email" class="form-input" /></td>
+                <td class="table-cell col-address"><input type="text" id="new-address" class="form-input" /></td>
+                <td class="table-cell col-actions">
+                    <div class="flex gap-2 justify-center">
+                        <button onclick="saveNewEmployee()" class="btn btn-small btn-success">Lưu</button>
+                        <button onclick="cancelQuickAdd()" class="btn btn-small btn-secondary">Hủy</button>
+                    </div>
+                </td>
+            `;
+      }
+
+      function triggerNewAvatarUpload() {
+        const input = document.getElementById("new-avatar-input");
+        if (input) input.click();
+      }
+
+      function handleNewAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const preview = document.getElementById("new-avatar-preview");
+            if (preview) preview.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function saveNewEmployee() {
+        const newEmployee = collectNewEmployeeData();
+
+        if (!validateNewEmployee(newEmployee)) return;
+
+        employees.push(newEmployee);
+        showQuickAdd = false;
+        renderQuickAddRow();
+        filterEmployees();
+        updateStats();
+        markUnsavedChanges();
+      }
+
+      function collectNewEmployeeData() {
+        const avatarPreview = document.getElementById("new-avatar-preview");
+        return {
+          stt: employees.length + 1,
+          id: document.getElementById("new-id").value.trim(),
+          name: document.getElementById("new-name").value.trim(),
+          avatar: avatarPreview ? avatarPreview.src : "/api/placeholder/50/50",
+          position: document.getElementById("new-position").value,
+          department: document.getElementById("new-department").value.trim(),
+          level: document.getElementById("new-level").value.trim(),
+          startDate: document.getElementById("new-startDate").value,
+          contractDate: document.getElementById("new-contractDate").value,
+          workStatus: document.getElementById("new-workStatus").value,
+          gender: document.getElementById("new-gender").value,
+          dob: document.getElementById("new-dob").value,
+          phone: document.getElementById("new-phone").value.trim(),
+          email: document.getElementById("new-email").value.trim(),
+          address: document.getElementById("new-address").value.trim(),
+        };
+      }
+
+      function validateNewEmployee(employee) {
+        if (!employee.id || !employee.name) {
+          alert("Mã nhân viên và họ tên không được để trống!");
+          return false;
+        }
+
+        if (employees.some((emp) => emp.id === employee.id)) {
+          alert("Mã nhân viên đã tồn tại!");
+          return false;
+        }
+
+        return true;
+      }
+
+      function cancelQuickAdd() {
+        showQuickAdd = false;
+        renderQuickAddRow();
+      }
+
+      // Edit Mode Functions
+      function toggleEditMode() {
+        editMode = !editMode;
+        updateEditButton();
+        renderEmployees();
+      }
+
+      function updateEditButton() {
+        const editBtn = document.getElementById("edit-btn");
+        if (editMode) {
+          editBtn.className = "btn btn-warning";
+          editBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    Chế Độ Xem
+                `;
+        } else {
+          editBtn.className = "btn btn-primary";
+          editBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Chế Độ Sửa
+                `;
+        }
+      }
+
+      // Data Management Functions
+      function saveAllChanges() {
+        alert("Đã lưu thành công tất cả thay đổi!");
+        clearUnsavedChanges();
+      }
+
+     function exportExcel() {
+  const wb = XLSX.utils.book_new(); // Tạo workbook
+
+  const wsData = [
+    ["STT", "Mã NV", "Tên NV", "Vị Trí", "Bộ Phận", "Cấp Bậc", "Ngày Bắt Đầu", "Ngày Ký HĐ", "Thời Gian Làm Việc", "Trạng Thái CV", "Giới Tính", "Ngày Sinh", "SĐT", "Email", "Địa Chỉ"],
+    ...employees.map(emp => [
+      emp.stt,
+      emp.id,
+      emp.name,
+      emp.position,
+      emp.department,
+      emp.level,
+      emp.startDate,
+      emp.contractDate,
+      calculateWorkDuration(emp.contractDate),
+      emp.workStatus,
+      emp.gender,
+      emp.dob,
+      emp.phone,
+      emp.email,
+      emp.address
+    ])
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData); // Tạo sheet từ mảng 2 chiều
+  XLSX.utils.book_append_sheet(wb, ws, "DanhSachNhanVien"); // Thêm sheet
+
+  XLSX.writeFile(wb, `danh_sach_nhan_vien_${new Date().toISOString().split("T")[0]}.xlsx`);
+}
+
+      // Initialize Application
+      function init() {
+        filteredEmployees = [...employees];
+        updateStats();
+        renderEmployees();
+
+        // Setup event listeners
+        window.addEventListener("beforeunload", (e) => {
+          if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue =
+              "Bạn có thay đổi chưa được lưu. Bạn có chắc chắn muốn rời khỏi trang?";
+          }
+        });
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
